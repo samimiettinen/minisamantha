@@ -1,0 +1,6 @@
+[
+  {"slug": "collaboration-demo", "jid": "111111111111111111@g.us", "tier": "T2"},
+  {"slug": "ordinary-demo", "jid": "222222222222222222@g.us", "tier": "T3"},
+  {"slug": "restricted-demo", "jid": "333333333333333333@g.us", "tier": "T4"},
+  {"slug": "blocked-demo", "jid": "444444444444444444@g.us", "tier": "T5"}
+]

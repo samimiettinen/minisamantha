@@ -1,0 +1,176 @@
+# Mac mini installation runbook
+
+## 0. Make the installation boundary explicit
+
+This runbook targets a **fresh standard macOS account** and the named profile `minisamantha`, normally at `~/.openclaw-minisamantha`. All commands below are operator commands, not permissions granted to the limited agent. Run them as the new account unless an admin step is explicitly indicated. Never paste a source document's commands without reviewing them.
+
+An existing installation needs a separate migration plan and verified backup, not this scaffold applied over it. Do not run `onboard`, `doctor --fix`, an updater, or a gateway restart against an unspecified profile. The source Samantha installation is out of scope.
+
+Before organisational/customer-data use, follow the [deployment review](deployment-review.md) and run the recommended `tekoalyasetus` use-case assessment in an approved operator environment. If Finnish is the working language, recommend the `suomen-kieli` workflow there as well. Start from a minimised description, not customer records. Neither companion changes this starter's data or tool permissions.
+
+## 1. Prepare the Mac
+
+1. Update macOS. Use Ethernet where possible, FileVault, the firewall, and a separate admin account. Keep the agent's standard account out of the admin group. A standard account can still run programs and reach its own data; it is not a sandbox.
+2. Do not sign the agent into the owner's Apple ID, iCloud, browser, email, password manager, or personal cloud drive. Grant no blanket Full Disk Access, Accessibility, screen recording, or passwordless sudo.
+3. Plan restart recovery: FileVault can need a person at the keyboard after cold boot; do not disable encryption or enable automatic login to hide that limitation. Test both the supported planned-restart path and a cold boot. An UPS reduces outages but does not solve unlocking.
+4. Record RAM and free disk. The baseline is a 16 GB Apple Silicon Mac mini, one active model turn at a time. Start Docker's VM budget around 3–4 GB and measure. This kit installs no 26B/27B local model, image/video pipeline, or always-running embeddings service.
+5. Install a supported Node.js version, Git, Python 3, and a Docker-compatible runtime from their official distributions. Use the target OpenClaw release's Node requirement, not “whatever is newest.” Review package sources; an administrator should provision shared software if needed. Verify `node --version`, `python3 --version`, and `docker info` under the actual agent account.
+6. Optional remote administration: use the official [Tailscale macOS installation guide](https://tailscale.com/docs/install/mac), restrict the tailnet to operator devices, and use SSH keys with the intended administrator account. Keep gateway ports off the public internet. Test a second remote connection before disabling password login. Do not enable Tailscale Funnel or router port forwarding.
+7. Plan the three-level kill switch in [section 7](#kill-switch-three-levels) before the first channel is linked: stop this gateway, cut its network, cut its power. Record how to stop only this gateway. The agent must not control its own sole emergency stop.
+
+## 2. Pin and inspect OpenClaw
+
+Reference version for this kit: `2026.9.8`. Review current advisories/release notes before selecting it; a pin is reproducibility, not proof of safety. If a newer security release is required, adapt the config and run the full tests before activation.
+
+For a fresh install, after approving that version:
+
+```sh
+npm install --global openclaw@2026.9.8
+openclaw --version
+openclaw --help
+```
+
+Do not use `sudo npm`, `@latest`, auto-update from a group, or third-party installers copied from chat. If global installation would require broad privilege changes, choose an operator-managed user-local Node/npm installation instead.
+
+Provision the sandbox image using the target release's [official image instructions](https://docs.openclaw.ai/gateway/sandboxing/images-and-setup). The npm package does not contain the source-checkout `scripts/sandbox-setup.sh`; do not run a guessed path. Review and build the documented Dockerfile, record its base digest and resulting image ID, and use `openclaw-sandbox:bookworm-slim` for this scaffold. Pin the actual deployment image by a verified immutable reference where supported. Rebuild deliberately for security updates. No Docker socket or host home-directory bind belongs inside a tool container.
+
+## 3. Generate a protected, disabled profile
+
+From the skill directory, after approving the destination:
+
+```sh
+python3 scripts/scaffold.py --output "$HOME/.openclaw-minisamantha" --owner '+YOUR_VERIFIED_NUMBER'
+```
+
+Replace the placeholder; the tool rejects invalid phone numbers. It refuses existing paths. Do not delete an existing profile to get past that protection. For group setup, prepare a local JSON registry using `assets/groups.example.json` as syntax only and add `--groups /absolute/private/path/groups.local.json`. Never use its synthetic IDs for a real deployment. Obtain the real group JID from trusted operator observation, not a screenshot's display name.
+
+The tool creates a random token and mode-600 config inside a mode-700 directory. Keep that directory on the encrypted local disk, outside this repository and cloud sync. Do not print or paste the config; it now contains a secret. Preserve its permissions in backups. If moved, regenerate or explicitly repair absolute workspace paths before use.
+
+It creates separate workspaces/agent directories, disables channels and heartbeats, and denies group tools. T4/T5 registry entries receive **no route and no channel admission**. Even with no groups, an unbound second agent prevents a sole-agent fallback into the private owner agent. That placeholder must never receive a binding.
+
+If you intend to test a group on the first day, include just that verified room in the initial registry. Adding a room later is an explicit configuration change: back up first, create its separate workspace and agent directory from the group templates, add a strict-model/tool-denied agent entry, an exact binding, and its mention-gated channel entry. Validate and run the room-isolation tests before activation. The scaffold is intentionally not an in-place updater; do not regenerate over an established profile.
+
+```sh
+openclaw --profile minisamantha config validate --json
+```
+
+Do not proceed if validation fails. A different destination requires explicitly setting both `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` for **every** command and service; the examples assume the named profile's standard location.
+
+## 4. Authenticate GPT‑5.6 Sol
+
+Choose one billing/auth route with the operator:
+
+- Supported OpenAI/Codex account sign-in, subject to plan access, quotas, and current terms.
+- An OpenAI Platform project API key with separate billing and explicit monitoring/budget controls.
+
+Do not describe a subscription as unlimited or assume it covers API keys, embeddings, or other providers. The presentation's historical monthly cost is not a quote for the reader. Do not silently fall back to paid API billing or another model.
+
+Inspect the current CLI before authorizing:
+
+```sh
+openclaw --profile minisamantha models auth login --help
+openclaw --profile minisamantha models auth login --provider openai
+openclaw --profile minisamantha models status --agent owner
+```
+
+Use the supported agent-scoped auth workflow for each activated group agent if profiles are not available there; consult the installed help. Do not symlink authentication directories or copy the operator's Codex home. Never expose tokens in prompts or command arguments.
+
+After any setup wizard or auth operation, compare the non-secret policy fields against the generated baseline and validate again. Do not accept a wizard's broader tool profile, fallback model, workspace, or channel defaults unnoticed.
+
+The scaffold fixes defaults **and every agent** to `openai/gpt-5.6-sol`, with empty fallbacks, and chooses the OpenClaw agent runtime explicitly. This avoids depending on native Codex-host tools for the starter. Authentication and runtime are separate decisions: account sign-in does not require giving a native coding harness host execution. If the exact account/runtime/model combination is unavailable, stop and report it. Do not invent model definitions or switch to GPT‑6.
+
+Before channel connection, start only this profile in the foreground in a dedicated terminal:
+
+```sh
+openclaw --profile minisamantha gateway run
+```
+
+Then in another terminal:
+
+```sh
+openclaw --profile minisamantha gateway status --require-rpc
+openclaw --profile minisamantha agent --agent owner --session-key minisamantha-owner-smoke --message 'Reply with MINI_OK. Do not use tools.' --json
+```
+
+Do **not** add `--deliver`. Confirm the response, actual model/auth/runtime, and absence of external delivery. Inspect output privately; do not publish transcripts. Repeat for each planned group agent. An API or OAuth failure is a setup failure, not a reason to relax isolation.
+
+## 5. Add approved memory, not a personal-data dump
+
+Use [memory.md](memory.md). Edit the generated owner `USER.md` and `MEMORY.md` with a few approved preferences and source links. Leave group workspaces free of owner data. The running starter cannot write these files: it proposes changes for the operator to apply. Do not confuse transcripts saved by the gateway with an automatically maintained knowledge base.
+
+Do not add Microsoft 365, mail, a broker connection, global browser cookies, MCP servers, or extra plugins on the first weekend. They need separate scopes, source review, version pins, disclosure review, and tests. Broader integrations are optional future work, not prerequisites.
+
+After the baseline passes, the two recommended next additions are [transcript-first YouTube reading and Lossless Claw](recommended-extensions.md). Follow that guide one extension at a time; neither is part of the scaffold or permission to widen group access. Keep the starter model GPT‑5.6 Sol and the no-MemoriLabs requirement.
+
+## 6. Connect the channel in two stages
+
+First perform the offline and local checks in [acceptance.md](acceptance.md). Have the owner approve the number and target channel. Use a separate real WhatsApp number and maintain the SIM/account. OpenClaw's WhatsApp Web connection is not a guarantee against disconnections or platform restrictions; keep a local operator access path.
+
+Enable the adapter with both ingress policies still disabled, then link only the new account using the CLI's current `channels login` help. Recheck the config after pairing; keep `selfChatMode: false`, `configWrites: false`, exact sender IDs, and no account-level overrides that widen scope.
+
+```sh
+openclaw --profile minisamantha config set channels.whatsapp.enabled true
+openclaw --profile minisamantha channels login --help
+```
+
+Enable owner DMs only after link verification:
+
+```sh
+openclaw --profile minisamantha config set channels.whatsapp.dmPolicy allowlist
+```
+
+Prove that the owner gets a reply and a non-owner DM does not. Then, if the reviewed registry contains exactly the intended first test group(s), activate group ingress:
+
+```sh
+openclaw --profile minisamantha config set channels.whatsapp.groupPolicy allowlist
+```
+
+Initially only the owner is in `groupAllowFrom`. The group map controls **which rooms**; `groupAllowFrom` controls **which senders across those rooms**. Do not treat room admission as participant authorization. To add collaborators, obtain an explicit common sender roster and retest denied senders. If different rooms need different enforceable rosters, use only a verified per-room sender-control feature of your release or separate deployments; do not assume the global list is per-room. No `*` admission entries.
+
+`requireMention` also accepts some reply-to-bot activation in OpenClaw. The prompt's stricter explicit-human-tag rule is behavioral. If strict native-tag-only gating is essential, require a tested ingress filter before production; this kit does not implement one. Prevent bot loops with sender allowlists, not claims that WhatsApp can always detect bots.
+
+Samantha's October 11 deployment added local adapter/runtime corrections for this behavior and for current-message/recovery context. Those patches are not part of a stock 2026.9.8 install or this kit. Check the actual target build and rerun the current-message, quote-only, native-mention, and recovery tests; copying policy prose alone does not install those fixes. See [deployment review](deployment-review.md).
+
+Only after all live tests pass, install the named profile's service using `gateway install --help` and the supported command. Verify its launch environment, paths, identity, token handling, and port. Do not replace another profile's service. Test logout/reboot/remote recovery before unattended operation.
+
+## 7. Operations, backup, and recovery
+
+Inspect after any change:
+
+```sh
+openclaw --profile minisamantha config validate
+openclaw --profile minisamantha gateway status --require-rpc
+openclaw --profile minisamantha channels status
+openclaw --profile minisamantha security audit --deep
+```
+
+Review every finding. Do not automatically apply `security audit --fix` or `doctor --fix`; either may change configuration. Keep logs and audit exports private and bounded. Use runtime evidence plus adversarial tests, not a “zero critical” screenshot as certification.
+
+Create a consistent backup through [OpenClaw backup](https://docs.openclaw.ai/install/backups), for example:
+
+```sh
+openclaw --profile minisamantha backup create --output "$HOME/Backups/MiniSamantha" --verify
+```
+
+The backup includes secrets and conversations; keep it encrypted, separate from the public repo, and access-restricted. A verified archive is not a restore test. Restore into an isolated test destination with channels disabled and no production port/account collision. Follow that release's restore help; confirm config, memory, and session readability before any activation. Never use a live raw directory tar as a database-consistency guarantee.
+
+Before an approved upgrade: backup, capture version/image IDs, review notes, run `update status`, and use an exact approved tag. The updater may restart the gateway. Re-run routing, model, sandbox, and channel tests. Retain a compatible previous application/config/state backup; downgrading a binary alone may not undo data migrations.
+
+For “session ended during restart recovery”: preserve the transcript, verify the model/auth and gateway, and use `/new` or `/reset` in the **affected conversation** to start a replacement session. In WebChat, use its resume/new-session control. Warn that active working context changes; do not delete session files, reset other conversations, or keep restarting the gateway. A new session must still pass the smoke test.
+
+### Kill switch: three levels
+
+Keep a stop you can reach in the dark, from away from home, without the agent's help. Use the lowest level that contains the problem.
+
+| Level | Action | Use when | Cost |
+| --- | --- | --- | --- |
+| 1. Stop | `openclaw --profile minisamantha gateway stop`, or the terminal interrupt for a foreground instance. Verify the intended process is down | Misbehaving replies, runaway spend, a test gone wrong | None; state preserved |
+| 2. Cut network | Block the Mac at the router, unplug its Ethernet, or switch off a network switch port, from a device the agent cannot reach | You cannot reach the shell, or containment is uncertain | Model calls and channel stop; local state preserved |
+| 3. Cut power | Switch off a smart plug or power strip controlled from an independent device or account | Levels 1–2 failed, or you suspect the host itself | Last resort: may damage in-flight writes; FileVault needs a person at the keyboard to restart |
+
+Requirements:
+
+- The stop path must not depend on the Mac itself, the agent's macOS account, its WhatsApp number, or credentials stored on that machine. Keep router and smart-plug credentials off the agent's account.
+- Use an independent, always-on device for remote stops, such as a small Linux machine or a home-automation hub on the operator's own tailnet access. Do not grant the agent's account access to it.
+- Test levels 1 and 2 before activation and after major changes, including once from outside the home network. Test level 3 only in a planned window.
+- After any level 2 or 3 stop, preserve logs, revoke exposed credentials from a trusted device, and investigate before restarting. Rerun the smoke test before reopening channels.
