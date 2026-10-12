@@ -4,6 +4,17 @@ A deliberately limited AI employee for a Mac mini: **OpenClaw + GPT‑5.6 Sol**,
 
 This is an **operator-invoked installation skill and starter kit**, not a security product or a clone of Samantha's private installation. It prepares a separate deployment; it does not modify an existing Samantha. Source repository: [samimiettinen/minisamantha](https://github.com/samimiettinen/minisamantha).
 
+**Verification status — 2026-10-12:** not independently security-certified or live-deployment audited. **T1–T5 are this project's conventions, not built-in OpenClaw security classes.** Offline checks do not prove that a running gateway enforces them. See [validation evidence and untested boundaries](VALIDATION.md) and [private vulnerability reporting](SECURITY.md).
+
+| Compatibility item | Evidence / limitation |
+| --- | --- |
+| OpenClaw 2026.9.8 | Scaffold schema and disabled-profile audit checked on 2026-10-10; historical reference, not a current security recommendation |
+| OpenClaw 2026.10.2 | Local CLI version and channel-login help inspected on 2026-10-12; no full deployment compatibility test |
+| `openai/gpt-5.6-sol` | Intentional fixed model; verify access in the actual account/runtime; no fallback if unavailable |
+| Live WhatsApp, model, sandbox, restore | Operator acceptance tests required; not established by this repository's CI |
+
+Version and model information ages quickly. Check the target release and advisories before installing; a newer version number alone does not establish compatibility or safety.
+
 ## What you get
 
 - [Installation skill](skills/install-minisamantha/SKILL.md): staged setup, approval gates, and handover.
@@ -28,6 +39,8 @@ This is an **operator-invoked installation skill and starter kit**, not a securi
 
 These are **security contexts, not rankings of people**. A familiar person in a group does not get T1 powers. T4/T5 blocking is a conservative MiniSamantha design choice; the presentation's tier labels are not a complete technical specification.
 
+Production groups stay disabled until strict-tag ingress tests pass, including no model call on quote/reply-only activation. A prompt instruction is not that filter, and this kit ships no ingress patch. Owner-only DMs can be deployed separately after their own acceptance tests pass.
+
 The starter has no autonomous file writes, shell, web fetching, MCP servers, or cross-session tools. The operator maintains memory from proposed patches. A later read-only public-research extension is described, but is **not enabled**. Replies to an admitted request are the only routine external output. A human publishes drafts elsewhere.
 
 Recommended next additions are a **YouTube reading skill** that summarizes verified transcripts, and **Lossless Claw** for retaining and retrieving compacted conversation history. Neither is bundled, installed, or enabled automatically. Start in T1; extend YouTube reading to selected T2/T3 rooms only after isolation tests. Lossless context must never become a shared private/group memory pool. See the [extension guide](skills/install-minisamantha/references/recommended-extensions.md).
@@ -38,7 +51,7 @@ From the talk *What Samantha does all day — and what I never let her touch*. *
 
 | Rule | In this kit | Type |
 | --- | --- | --- |
-| 1. Give the agent its own identity | Separate standard macOS user, new named profile, its own WhatsApp number; never the owner's Apple ID, browser, or email | Procedure, acceptance-tested |
+| 1. Give the agent its own identity | Separate standard macOS user, new named profile, its own WhatsApp number; never the owner's Apple ID, browser, or email | Procedure; operator acceptance test required |
 | 2. Treat every group chat as untrusted input | One agent and workspace per admitted group, all group tools denied, no private files in group workspaces | Config, plus behavioral refusals |
 | 3. Isolation beats personality. Fail closed | No model fallbacks, T4/T5 absent from routing, an unbound placeholder agent prevents fallback into T1 | Config |
 | 4. Explicit allowlists, no wildcards | Exact owner and group bindings, sender lists, wildcard and malformed IDs rejected by the scaffold | Config |
@@ -66,6 +79,8 @@ For **Claude Code**, this repository includes a project-local `/install-minisama
 
 For a manual installation, follow the [runbook](skills/install-minisamantha/references/install.md).
 
+For WhatsApp, follow the runbook's [QR linking steps](skills/install-minisamantha/references/install.md#qr-linking-operator-terminal-only). QR linking connects the bot's separate WhatsApp account; it does **not** authorize an owner or a group. Admission is tested separately, first owner DM and then one test group.
+
 ## Check the kit locally
 
 ```sh
@@ -82,9 +97,13 @@ Quality refresh, 2026-10-12: the group template now prioritises the current requ
 
 Publish only this kit, never a generated profile, `.openclaw` directory, conversations, credentials, real participant lists, or the source presentation. `.gitignore` is defense in depth, not a secret scanner. Review the exact files before each publication.
 
+Run the [publication checks](PUBLICATION.md) before pushing: scan the complete fetched Git history, working tree, and commit metadata. CI repeats these checks using a pinned scanner. Never upload scanner findings containing private data as public artifacts. A clean scan is not proof of anonymity or a security audit.
+
 ## License
 
 MIT © 2026 Sami Miettinen. See [LICENSE](LICENSE). The license covers this kit's code and documentation. It does not cover the source presentation, OpenClaw, model providers, or other third-party material referenced here.
+
+The source presentation is not distributed. The MIT notice is not evidence of rights to third-party material or names; before adding such material or making endorsement claims, the maintainer must record the appropriate permission. See [publication responsibilities](PUBLICATION.md#rights-and-attribution).
 
 ## Suomeksi
 

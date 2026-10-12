@@ -34,6 +34,8 @@ Do not claim this is hostile multi-tenancy. OpenClaw's documented trust model is
 
 Tone, truthfulness, explicit-human-tag-only behavior, static-review-only behavior, and refusing disclosures are instructions, not absolute enforcement. WhatsApp reply-to-bot detection can satisfy its native mention gate. Sender authentication does not sanitize quoted or retrieved content. An authorized sender can be compromised. A local gateway does not keep data sent to a cloud model local.
 
+This kit requires verified strict-tag ingress before **production group** activation: quote/reply-only activation must not invoke the model. If the target build cannot enforce that, keep production groups disabled and complete only the separately tested owner-DM deployment. No deterministic ingress filter is included. See the [acceptance criteria](acceptance.md#b-routing-and-group-boundaries).
+
 Do not put forbidden data in any context reachable from the target agent. No deal/client secrets, insider information, banking/broker tokens, or personal browser sessions are included. Do not rely on hiding architecture as the main defense; explaining public principles is fine, leaking secret paths/tokens/private prompts is not.
 
 ## Optional extensions, one at a time

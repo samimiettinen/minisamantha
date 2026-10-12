@@ -22,7 +22,16 @@ Before organisational/customer-data use, follow the [deployment review](deployme
 
 Reference version for this kit: `2026.9.8`. Review current advisories/release notes before selecting it; a pin is reproducibility, not proof of safety. If a newer security release is required, adapt the config and run the full tests before activation.
 
-For a fresh install, after approving that version:
+**Before any package install or authentication**, inspect the executable and install destination under the intended standard user:
+
+```sh
+command -v openclaw
+npm prefix --global
+```
+
+An absent executable is normal on a fresh account. A separate account/profile does not make a shared npm prefix independent. If installing would replace a binary used by another deployment, stop and provision an independent user-local Node/npm prefix first; do not update the shared installation. Privately check for inherited `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` overrides, and compare the intended profile paths, service identity and port. Resolve conflicting overrides before continuing; `--profile` must not be assumed to neutralize them. Do not dump the environment or a token-bearing config into logs/chat. Record the approved destinations before the first write.
+
+For a fresh install, after approving that version and proving the global prefix belongs exclusively to this new installation:
 
 ```sh
 npm install --global openclaw@2026.9.8
@@ -106,20 +115,43 @@ After the baseline passes, the two recommended next additions are [transcript-fi
 
 First perform the offline and local checks in [acceptance.md](acceptance.md). Have the owner approve the number and target channel. Use a separate real WhatsApp number and maintain the SIM/account. OpenClaw's WhatsApp Web connection is not a guarantee against disconnections or platform restrictions; keep a local operator access path.
 
-Enable the adapter with both ingress policies still disabled, then link only the new account using the CLI's current `channels login` help. Recheck the config after pairing; keep `selfChatMode: false`, `configWrites: false`, exact sender IDs, and no account-level overrides that widen scope.
+### QR linking: operator terminal only
+
+QR linking authenticates the **bot's separate WhatsApp account**, not the owner's access to it. The owner sends DMs from their own allowlisted number. Do not scan using the owner's personal WhatsApp account. The scaffold binds account ID `default`; using a different account requires an explicit configuration/routing review, not merely a different login flag.
+
+Before linking, check the standard macOS user, named profile, state/config paths and gateway/service port against the approved target. Keep `dmPolicy` and `groupPolicy` set to `disabled`. Do not proceed on a CLI/gateway path mismatch or an unverifiable target warning. The current CLI has pre-write mismatch checks, but those are not a substitute for selecting the correct profile, especially on remote gateways.
+
+In an **operator-controlled terminal on the gateway host**, inspect the installed help, enable only the adapter, then run login:
 
 ```sh
-openclaw --profile minisamantha config set channels.whatsapp.enabled true
 openclaw --profile minisamantha channels login --help
+openclaw --profile minisamantha config set channels.whatsapp.enabled true
+openclaw --profile minisamantha channels login --channel whatsapp --account default
+openclaw --profile minisamantha channels status
 ```
 
-Enable owner DMs only after link verification:
+The login example matches the help inspected on OpenClaw 2026.10.2 and the current [channel CLI documentation](https://docs.openclaw.ai/cli/channels); verify it on the actual release, including the 2026.9.8 reference. Do not run a second gateway if the intended profile is already running from section 4.
+
+1. On the phone using the separate bot number, open WhatsApp → Settings (or the Android menu) → Linked devices → Link a device.
+2. Scan the live terminal QR; renew an expired QR through that same supervised login flow. Do not publish, save in the repo, or forward the QR into a group/chat transcript.
+3. Verify the linked account is the intended bot number in WhatsApp's linked-device view and local channel status. Keep identifiers and auth files private.
+4. Recheck configuration: both ingress policies remain disabled, `selfChatMode: false`, `configWrites: false`, exact sender IDs, account `default`, and no account overrides widening access. Validate again before enabling DMs.
+
+The current OpenClaw agent `exec` blocks interactive `channels login`. Some builds also offer a `whatsapp_login` agent tool; **do not enable it for MiniSamantha**, privately or in groups. Setup belongs to the operator, not the limited agent. For a headless host use a trusted operator terminal/remote-administration session; do not add chat-delivered QR permissions as a workaround.
+
+Successful login may save authentication while the gateway's account start is skipped or delayed. Follow the reported status and verify the correct account's connection; saved auth is not proof of a healthy listener or correct admission. Allow at most one supervised retry after correcting an identified cause; if that fails, stop with both ingress policies disabled and record the unresolved error privately. Do not borrow another account's session, switch profiles, log out unrelated devices, repeatedly restart the whole gateway, or delete auth to conceal an unresolved lifecycle error.
+
+If a login expires before a usable QR, check network reachability, the QR expiry and the specific error first. **Only when a proxy is in use**, check the gateway host's `HTTPS_PROXY`/`HTTP_PROXY`/`NO_PROXY` environment privately; the documented proxy case requires that `NO_PROXY` not bypass `mmg.whatsapp.net`. A 408/TLS error alone does not establish a proxy cause. Do not disable TLS checks, add a proxy, or dump environment variables into chat. See [WhatsApp troubleshooting](https://docs.openclaw.ai/channels/whatsapp#troubleshooting).
+
+### Enable the owner, then one test group
+
+Enable owner DMs only after link verification and the pre-admission checks:
 
 ```sh
 openclaw --profile minisamantha config set channels.whatsapp.dmPolicy allowlist
 ```
 
-Prove that the owner gets a reply and a non-owner DM does not. Then, if the reviewed registry contains exactly the intended first test group(s), activate group ingress:
+Prove that the owner gets a reply and a non-owner DM does not. For group testing, the operator adds the **same bot number** to one private test group and verifies that room's exact JID independently. A QR does not select the room or create an agent binding. Check that the reviewed registry, dedicated agent/workspace, binding and channel group map contain that room, with only the owner initially admitted as sender. Then activate ingress for the configured test group(s):
 
 ```sh
 openclaw --profile minisamantha config set channels.whatsapp.groupPolicy allowlist
@@ -127,7 +159,7 @@ openclaw --profile minisamantha config set channels.whatsapp.groupPolicy allowli
 
 Initially only the owner is in `groupAllowFrom`. The group map controls **which rooms**; `groupAllowFrom` controls **which senders across those rooms**. Do not treat room admission as participant authorization. To add collaborators, obtain an explicit common sender roster and retest denied senders. If different rooms need different enforceable rosters, use only a verified per-room sender-control feature of your release or separate deployments; do not assume the global list is per-room. No `*` admission entries.
 
-`requireMention` also accepts some reply-to-bot activation in OpenClaw. The prompt's stricter explicit-human-tag rule is behavioral. If strict native-tag-only gating is essential, require a tested ingress filter before production; this kit does not implement one. Prevent bot loops with sender allowlists, not claims that WhatsApp can always detect bots.
+`requireMention` also accepts some reply-to-bot activation in OpenClaw. The prompt's stricter explicit-human-tag rule is behavioral. **For this kit, production groups remain disabled until the strict-tag ingress acceptance tests pass**, including no model invocation on quote-only/reply-only activation. This may require a separately reviewed ingress filter or a verified target-release fix; neither is shipped here. Owner-only DMs may be handed over separately after their own tests pass; private test groups are only for bounded acceptance work. Do not reinterpret a polite model refusal as successful ingress filtering. Prevent bot loops with sender allowlists, not claims that WhatsApp can always detect bots.
 
 Samantha's October 11 deployment added local adapter/runtime corrections for this behavior and for current-message/recovery context. Those patches are not part of a stock 2026.9.8 install or this kit. Check the actual target build and rerun the current-message, quote-only, native-mention, and recovery tests; copying policy prose alone does not install those fixes. See [deployment review](deployment-review.md).
 
@@ -165,12 +197,13 @@ Keep a stop you can reach in the dark, from away from home, without the agent's 
 | Level | Action | Use when | Cost |
 | --- | --- | --- | --- |
 | 1. Stop | `openclaw --profile minisamantha gateway stop`, or the terminal interrupt for a foreground instance. Verify the intended process is down | Misbehaving replies, runaway spend, a test gone wrong | None; state preserved |
-| 2. Cut network | Block the Mac at the router, unplug its Ethernet, or switch off a network switch port, from a device the agent cannot reach | You cannot reach the shell, or containment is uncertain | Model calls and channel stop; local state preserved |
+| 2. Cut network | Block **all** of the Mac's network paths from an independent device; Ethernet alone is insufficient if Wi-Fi or another uplink remains | You cannot reach the shell, or containment is uncertain | New network traffic stops once containment is verified; already submitted remote work may continue |
 | 3. Cut power | Switch off a smart plug or power strip controlled from an independent device or account | Levels 1–2 failed, or you suspect the host itself | Last resort: may damage in-flight writes; FileVault needs a person at the keyboard to restart |
 
 Requirements:
 
 - The stop path must not depend on the Mac itself, the agent's macOS account, its WhatsApp number, or credentials stored on that machine. Keep router and smart-plug credentials off the agent's account.
 - Use an independent, always-on device for remote stops, such as a small Linux machine or a home-automation hub on the operator's own tailnet access. Do not grant the agent's account access to it.
+- Inventory Ethernet, Wi-Fi, USB/mobile tethering and alternate routers before activation. Disable unused uplinks and verify that cutting the intended path does not fall back to another. Verify loss of channel connectivity and new provider requests; unplugging a cable or losing SSH alone is not proof of containment. Keep the independent power-stop path usable after cutting the Mac's network.
 - Test levels 1 and 2 before activation and after major changes, including once from outside the home network. Test level 3 only in a planned window.
 - After any level 2 or 3 stop, preserve logs, revoke exposed credentials from a trusted device, and investigate before restarting. Rerun the smoke test before reopening channels.

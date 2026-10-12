@@ -31,6 +31,8 @@ Presentation claims are historical design context, not evidence that a new deplo
 
 OpenClaw details above were checked against the documentation bundled with installed release `2026.9.8`; the web references are the corresponding live pages. Claude Code skill discovery/manual invocation and the exact GPT‑5.6 Sol model page were also checked online. Online docs can move ahead of that local version.
 
+QR/publication refresh, 2026-10-12: local OpenClaw `2026.10.2` version and `channels login --help` inspected without starting login. The [current CLI guide](https://docs.openclaw.ai/cli/channels) and [WhatsApp guide](https://docs.openclaw.ai/channels/whatsapp) support the documented QR, profile/account, exec restriction and proxy caveats. This does not revalidate the scaffold against 2026.10.2 or exercise live login. Current documentation describes WhatsApp as a separately packaged plugin; when changing releases, verify that release's official plugin packaging/version rather than installing an unpinned dependency or assuming the historical layout still applies.
+
 ## What this kit does not claim
 
 - No MemoriLabs: the optional file graph is a replacement data convention, not the same engine.

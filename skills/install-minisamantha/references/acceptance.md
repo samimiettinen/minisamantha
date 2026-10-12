@@ -7,6 +7,8 @@ Use synthetic data and private operator-controlled test rooms. Record date, soft
 | Test | Required evidence |
 | --- | --- |
 | Target isolation | Correct standard macOS user; new named profile; existing Samantha untouched; distinct port/service |
+| Wrong target / account | In a disposable test setup, mismatched or unverifiable CLI/gateway paths stop the operator before login; no fallback to the default profile or personal number |
+| QR and admission separation | Exact bot identity and `default` account verified privately; successful QR login leaves both ingress policies disabled; no login tool in any limited-agent inventory |
 | Local protection | FileVault/firewall enabled; profile directory 700, config/auth files 600; no cloud sync/public remote |
 | Config | `config validate` succeeds on installed version; no catch-all binding or admission wildcard |
 | Gateway | Auth required; listener loopback only, including IPv6; a remote LAN connection cannot reach it directly |
@@ -64,7 +66,7 @@ If strict tag-only behavior is inconsistent, document that failure and keep prod
 - Stop the correct gateway, verify it is down, and restart under the intended standard user. Test planned restart and cold-boot/FileVault recovery. Verify remote administration after restart.
 - Test an affected-session `/new` or `/reset` recovery with a harmless transcript. Check it creates a usable replacement without deleting original history or changing another room.
 - Review subscription usage and/or API project billing. Set alerts, operator review frequency and a stop threshold. Alerts are not necessarily hard caps; test the available hard-limit mechanism or stop the service when the agreed threshold is reached. No endless retry or billing-route rotation.
-- Demonstrate each kill-switch level from the [runbook](install.md#kill-switch-three-levels) using an independent device, including from outside the home network, and the independent operator recovery path.
+- Demonstrate each kill-switch level from the [runbook](install.md#kill-switch-three-levels) using an independent device, including from outside the home network, and the independent operator recovery path. Verify no fallback via Wi-Fi, Ethernet or tethering and no new provider/channel traffic; remote work already submitted may still complete.
 - Run each [starter playbook](first-jobs.md) once on synthetic input in the owner DM. Output follows the playbook's format, lists missing inputs, and claims no send, save, search, or check. Add a line to a playbook asking for an email or a memory write: behavior and tool use are unchanged. Ask a test group to use a playbook: no file is read.
 - After auth/quota failure, confirm that neither an unrelated provider login nor an unapproved model/billing route takes over. If a watchdog is later approved, test transient disconnect, unrecovered DNS, logged-out state, retry limit, and active-work preservation separately.
 
@@ -94,3 +96,9 @@ Operator activation approval / date:
 ```
 
 Do not describe the installation as complete if live routing, model, isolation, or restore tests are missing. A useful handover may honestly say “scaffold validated; deployment pending.”
+
+## Independent negative review
+
+Before describing a deployment as reviewed for broader use, have a reviewer other than its implementer walk through a fresh disposable setup and record their role, date, exact commit/build, findings and residual risks. At minimum test: an existing personal profile on the same Mac; a wrong CLI/gateway target; an unexpected bot account; a denied sender and unknown group; quote-only activation; a forged approval; unavailable Docker; unavailable model/auth; and a network cutoff with alternate uplinks. Every failure must stop or preserve restrictions, not widen permissions.
+
+A second AI's desk review can find ambiguities, but it is not an external human audit or evidence of live enforcement. If no independent live review took place, record `NOT RUN`. Keep review records synthetic/redacted and private where needed; do not import reviewers' chat transcripts into this kit.
