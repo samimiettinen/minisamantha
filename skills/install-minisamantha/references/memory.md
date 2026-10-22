@@ -11,6 +11,8 @@ Do not install MemoriLabs or another global conversation-extraction service. Use
 
 The native transcript is history, not an always-loaded memory. **Lossless Claw is the recommended optional context extension** once the baseline works; see [recommended extensions](recommended-extensions.md) for selection, scope, cost, and acceptance checks. This starter does **not** install it. Review its exact version, source, hooks, data paths, retention, and isolation before activation; otherwise retain originals through native history plus tested backups. Even “lossless” plugins do not eliminate deletion, corruption, or retention limits. It complements the wiki and file graph; it is not MemoriLabs and does not replace backups.
 
+Review automatic ingestion as well as search. Host-side plugin hooks may see conversations even when an agent cannot call memory tools. An agent/session ID stored as metadata is not an access-control boundary unless both writes and retrieval enforce it. Before any optional memory/context extension, verify owner-private and per-room storage/retrieval scopes and use distinct synthetic canaries to inspect actual prompts and persisted records. Do not enable a shared extraction namespace and rely on a prompt or tool denylist to separate it later. See [security maintenance](security-maintenance.md#3-preserve-the-existing-boundaries).
+
 ## Owner workspace
 
 ```text

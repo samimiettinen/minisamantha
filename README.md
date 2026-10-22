@@ -4,12 +4,15 @@ A deliberately limited AI employee for a Mac mini: **OpenClaw + GPT‑5.6 Sol**,
 
 This is an **operator-invoked installation skill and starter kit**, not a security product or a clone of Samantha's private installation. It prepares a separate deployment; it does not modify an existing Samantha. Source repository: [samimiettinen/minisamantha](https://github.com/samimiettinen/minisamantha).
 
-**Verification status — 2026-10-12:** not independently security-certified or live-deployment audited. **T1–T5 are this project's conventions, not built-in OpenClaw security classes.** Offline checks do not prove that a running gateway enforces them. See [validation evidence and untested boundaries](VALIDATION.md) and [private vulnerability reporting](SECURITY.md).
+**Security guidance refreshed — 2026-10-22:** use a reviewed, patched OpenClaw/Node combination before activation. The dated baseline is **OpenClaw 2026.10.6 with Node 24.22.1+ on the 24 line or 26.12.1+ on the 26 line**; prefer the supported patched Node 24 LTS line. Recheck upstream before installing. See the [security maintenance checklist](skills/install-minisamantha/references/security-maintenance.md) for sources, actual-process verification, dependency review, and recovery.
+
+**Verification status:** not independently security-certified or live-deployment audited. **T1–T5 are this project's conventions, not built-in OpenClaw security classes.** Offline checks do not prove that a running gateway enforces them. See [validation evidence and untested boundaries](VALIDATION.md) and [private vulnerability reporting](SECURITY.md).
 
 | Compatibility item | Evidence / limitation |
 | --- | --- |
 | OpenClaw 2026.9.8 | Scaffold schema and disabled-profile audit checked on 2026-10-10; historical reference, not a current security recommendation |
 | OpenClaw 2026.10.2 | Local CLI version and channel-login help inspected on 2026-10-12; no full deployment compatibility test |
+| OpenClaw 2026.10.6 / patched Node 24 or 26 | Published release and npm engine requirement checked on 2026-10-22; security installation baseline, not a new live compatibility certification |
 | `openai/gpt-5.6-sol` | Intentional fixed model; verify access in the actual account/runtime; no fallback if unavailable |
 | Live WhatsApp, model, sandbox, restore | Operator acceptance tests required; not established by this repository's CI |
 
@@ -22,7 +25,8 @@ Version and model information ages quickly. Check the target release and advisor
 - [T1–T5 policy](skills/install-minisamantha/references/security.md): enforced controls versus behavioral instructions.
 - [Memory without MemoriLabs](skills/install-minisamantha/references/memory.md): transcripts, source-backed wiki, a small file graph, and portable records.
 - [Recommended extensions](skills/install-minisamantha/references/recommended-extensions.md): transcript-first YouTube reading and Lossless Claw context management, with scoped rollout and tests.
-- [Deployment review](skills/install-minisamantha/references/deployment-review.md): lessons from Samantha's October updates, organisational-use checks, and Finnish language quality.
+- [Security maintenance](skills/install-minisamantha/references/security-maintenance.md): patched runtimes, dependency exposure, bounded approvals, and update/restore checks.
+- [Deployment review](skills/install-minisamantha/references/deployment-review.md): context and recovery requirements, organisational-use checks, and Finnish language quality.
 - [Acceptance tests](skills/install-minisamantha/references/acceptance.md): positive and negative tests required before enabling groups.
 - [First jobs](skills/install-minisamantha/references/first-jobs.md): four starter playbooks, from guest question sets to research notes, so the deployment does real work within the same limits.
 - A standard-library Python scaffold tool, persona/policy templates, and offline regression tests.
@@ -89,7 +93,7 @@ python3 -m unittest discover -s tests -v
 
 Tests use synthetic identities and temporary directories. They do not call a model, start a gateway, link WhatsApp, install packages, or change your running agent.
 
-Implementation target: OpenClaw **2026.9.8**, the locally inspected reference version, **not a claim that it is the latest or still safe to deploy**. Review advisories and the installed schema before use; validate and retest any version change. See [sources and limitations](skills/install-minisamantha/references/sources.md).
+Historical scaffold schema reference: OpenClaw **2026.9.8**, **not a version to install from this guide**. Use the patched installation baseline above, validate the generated configuration against that release, and complete the live acceptance tests before activation. See [sources and limitations](skills/install-minisamantha/references/sources.md).
 
 Quality refresh, 2026-10-12: the group template now prioritises the current request over history, distinguishes old media from current attachments, and instructs recovery to use the retained original request. The runtime must actually retain that request. New acceptance scenarios cover these failures and strict mentions. Samantha's version-specific runtime hotfixes and broader production permissions are **not** included; prompt improvements alone do not establish those runtime guarantees.
 

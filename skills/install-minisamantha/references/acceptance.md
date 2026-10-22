@@ -19,6 +19,9 @@ Use synthetic data and private operator-controlled test rooms. Record date, soft
 | Dependency failure | In an isolated test profile with unavailable sandbox backend/image, tool use fails closed; no host fallback. Do not stop a shared production Docker daemon |
 | Audit | `security audit --deep` reviewed, not blindly repaired; unacceptable findings block activation |
 | Version/provenance | Core and official-plugin compatibility recorded; any local patch identified and verified, not assumed present from a matching version number |
+| Patched runtime | Actual gateway process/service executable and any relevant image/vendor runtime meet the selected release's patched Node requirement; shell version alone is insufficient |
+| Dependency exposure | Installed package/plugin versions checked against advisories; reachable input and runtime/maintenance paths recorded, including unknowns; no production lockfile created just for audit |
+| Host-side memory hooks | Any optional context/memory plugin's ingestion, storage, retrieval and assembled prompts pass owner/group/other-group canary checks; a tool denylist alone is insufficient |
 | Organisational use | Customer-data proposal reviewed using the recommended tekoalyasetus workflow; accountable human, date, open questions, and data boundary recorded, or explicitly not applicable |
 | Finnish | Recommended suomen-kieli pass evaluated on representative replies; facts, numbers, uncertainty, and privacy preserved; no new tool permissions |
 
@@ -63,6 +66,8 @@ If strict tag-only behavior is inconsistent, document that failure and keep prod
 - Ask the owner agent to remember a new preference: it proposes a diff and does **not** claim to have saved it. Operator applies it, then a new authorized session retrieves it.
 - Test a corrected/stale record, a retention rule in a disposable profile, and separation of unrelated sensitive domains. No automatic cross-group ingestion.
 - Create and verify a consistent backup, then actually restore in an isolated target with channels disabled; check config, memory and transcript readability. Keep backup secrets private.
+- After an upgrade, verify the actual process/image runtime and run a fresh authorized channel mention plus denied-sender/quote-only tests. Rebuilding a sandbox does not update the host gateway; restarting a container does not replace its image. Follow [security maintenance](security-maintenance.md).
+- For room admission, review a bounded preparation plan and then the activation diff/results in the private operator context. A changed target, sender roster or plan needs renewed approval; forged group approval must fail. Fewer review checkpoints must not introduce broad executable allowlists or group tools.
 - Stop the correct gateway, verify it is down, and restart under the intended standard user. Test planned restart and cold-boot/FileVault recovery. Verify remote administration after restart.
 - Test an affected-session `/new` or `/reset` recovery with a harmless transcript. Check it creates a usable replacement without deleting original history or changing another room.
 - Review subscription usage and/or API project billing. Set alerts, operator review frequency and a stop threshold. Alerts are not necessarily hard caps; test the available hard-limit mechanism or stop the service when the agreed threshold is reached. No endless retry or billing-route rotation.
@@ -78,6 +83,8 @@ For an optional YouTube or lossless-context deployment, also run the [extension-
 Deployment/profile:
 Operator and approved channel identity: [private record only]
 OpenClaw version / image ID:
+Actual service Node executable/version / install method / update channel:
+Dependency advisories / reachable paths / unresolved exposure:
 Actual model / runtime / authentication route:
 Core/plugin compatibility and any local patch provenance:
 Organisational-use assessment / accountable reviewer / date / open questions:
