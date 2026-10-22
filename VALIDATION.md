@@ -45,3 +45,27 @@ Added a maintenance checklist for actual service runtimes, installed dependency 
 - The documentation diff and relative links were reviewed, and whitespace checks passed. Published stable fixes, dated minimums, procedural recommendations and unverified deployment behavior are labeled separately.
 
 New-release scaffold schema validation, live model/channel/group isolation, optional plugin behavior, Docker containment and restore tests: **NOT RUN** in this documentation refresh. The earlier compatibility evidence remains historical. Complete the updated acceptance checklist on the chosen release before activating a deployment.
+
+## Disposable CLI and credential checks — 2026-10-22
+
+Base revision: `f05c10c40dfcf6e33e96662f8f7724468822df8a`, plus this local-check/scaffold update. Reviewer role: implementing AI assistant; no independent external human audit. The exact tested checker/scaffold bytes have combined SHA-256 `55f19828fc9863408bf4f5ba7e845459076bd98ed8d9903d344ee541b3e5ece4` (scaffold bytes followed by checker bytes). The published commit and CI identify the complete repository revision.
+
+New profiles use a file-backed gateway SecretRef and explicitly disable system browser-profile import. Added an optional local checker and plain-language warning dispositions. Model, agent tool restrictions, sandbox policy, loopback binding, disabled heartbeat cadence, and closed channels are preserved. Production groups still require verified ingress tests; no custom runtime patch, new GitHub workflow, scheduled scan, or repository rule was added. No private deployment material was included.
+
+The actual CLI run used official Node **24.22.1** on macOS arm64 (download checked against the official SHA-256 manifest) and isolated npm OpenClaw **2026.10.6**, CLI build `fe06181`. Package install scripts and optional dependencies were omitted for this disposable CLI-only test. No existing installation was updated, gateway started, channel linked, or model authenticated. Synthetic state covered owner, unbound placeholder, T2 and T3 agents, with all channels disabled.
+
+| Check | Result | Observed evidence |
+| --- | --- | --- |
+| `config validate --json` | `PASS` | Exit 0, valid config, no schema warnings |
+| `secrets audit --check --json` | `PASS` | Exit 0; one reference resolved; zero plaintext-config, unresolved, shadowed or residue findings |
+| Secret file missing / mode 644 / symlink | `PASS` (rejection tests) | Each separate synthetic case returned exit 2, `REF_UNRESOLVED`, one unresolved reference; normal private file returned exit 0 |
+| `doctor --lint --json` | `WARN` | Exit 1; 36 checks run, 30 skipped, 10 warning findings: browser-import-disabled (1), disabled heartbeat rows (4), loopback node hosting (1), restricted skill workshop (4) |
+| `security audit --json` | `WARN` | Exit 0; 0 critical, 1 warning (`gateway.trusted_proxies_missing`), 1 informational attack-surface finding |
+| Overall local check | `REVIEW` | Exit 1; warnings remain visible and no repair was applied |
+| Offline suite | `PASS` | 38 tests, no skips, including secret-file permissions/non-disclosure, isolated environment, failure handling and all eight scanner integration tests |
+| Live gateway/model/WhatsApp/strict mentions | `NOT RUN` | No inference from CLI/schema checks to live admission behavior |
+| Docker execution, restore, Node 26 runtime | `NOT RUN` | Configuration and upstream requirements are not execution evidence |
+
+See [warning dispositions](skills/install-minisamantha/references/local-check.md#read-the-result). Doctor's skipped checks are not passes. The clean credential result means no plaintext credential was found in the scanned config stores; the separate secret file itself is plaintext protected by local permissions and disk encryption. Missing/permissive/symlink tests verify resolver rejection, not a live gateway startup or authentication exchange.
+
+Publication uses the existing pinned Gitleaks 8.30.1 full-history/working-tree/metadata checks and privacy/link tests; the final-commit scan and existing CI record their result against the published revision. No new automated infrastructure is needed by an ordinary installer. External independent human review and live deployment acceptance remain **NOT RUN**.

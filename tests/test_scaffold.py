@@ -1,10 +1,13 @@
 import copy
+from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
+import io
 import json
 from pathlib import Path
 import stat
 import tempfile
 import unittest
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parents[1] / "skills/install-minisamantha/scripts/scaffold.py"
 SPEC = importlib.util.spec_from_file_location("scaffold", SCRIPT)
@@ -18,7 +21,7 @@ GROUPS = [{"slug": f"test-{tier.lower()}", "jid": f"11111111111111111{i}@g.us", 
 class ScaffoldTests(unittest.TestCase):
     def config(self, groups=None):
         return kit.build_config(Path("/synthetic/minisamantha"), OWNER,
-                                GROUPS if groups is None else groups, "x" * 48)
+                                GROUPS if groups is None else groups)
 
     def test_strict_requested_model_everywhere(self):
         config = self.config()
@@ -66,6 +69,9 @@ class ScaffoldTests(unittest.TestCase):
         self.assertNotIn("binds", sb["docker"])
         self.assertEqual(config["gateway"]["bind"], "loopback")
         self.assertEqual(config["tools"]["allow"], ["read"])
+        self.assertFalse(config["browser"]["enabled"])
+        self.assertFalse(config["browser"]["allowSystemProfileImport"])
+        self.assertEqual(config["agents"]["defaults"]["heartbeat"]["every"], "0m")
 
     def test_invalid_identity_or_tier_rejected(self):
         for field, value in [("slug", "../../owner"), ("jid", "*"), ("tier", "T1"), ("tier", "T6")]:
@@ -74,7 +80,7 @@ class ScaffoldTests(unittest.TestCase):
             with self.subTest(field=field, value=value), self.assertRaises(ValueError):
                 self.config(bad)
         with self.assertRaises(ValueError):
-            kit.build_config(Path("/synthetic"), "*", [], "x" * 48)
+            kit.build_config(Path("/synthetic"), "*", [])
 
     def test_duplicate_and_extra_config_rejected(self):
         with self.assertRaises(ValueError):
@@ -111,6 +117,30 @@ class ScaffoldTests(unittest.TestCase):
                 self.assertEqual(stat.S_IMODE(book.stat().st_mode), 0o600)
             for agent_id in ("unbound", "group-test-t2", "group-test-t3"):
                 self.assertFalse((root / "workspaces" / agent_id / "playbooks").exists())
+
+    def test_gateway_secret_reference_permissions_and_no_disclosure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve() / "profile"
+            canary = "synthetic-private-token-" + "x" * 48
+            stdout, stderr = io.StringIO(), io.StringIO()
+            with mock.patch.object(kit.secrets, "token_urlsafe", return_value=canary), \
+                    mock.patch("sys.argv", ["scaffold.py", "--output", str(root), "--owner", OWNER]), \
+                    redirect_stdout(stdout), redirect_stderr(stderr):
+                kit.main()
+            secret_file = root / "secrets" / "gateway-token"
+            self.assertEqual(secret_file.read_text().strip(), canary)
+            self.assertEqual(stat.S_IMODE(secret_file.stat().st_mode), 0o600)
+            self.assertEqual(stat.S_IMODE(secret_file.parent.stat().st_mode), 0o700)
+            self.assertEqual(secret_file.stat().st_nlink, 1)
+            config = json.loads((root / "openclaw.json").read_text())
+            self.assertEqual(config["gateway"]["auth"]["token"], {
+                "source": "file", "provider": "local_gateway", "id": "value"})
+            self.assertEqual(config["secrets"]["providers"]["local_gateway"], {
+                "source": "file", "path": str(secret_file), "mode": "singleValue"})
+            for path in root.rglob("*"):
+                if path.is_file() and path != secret_file:
+                    self.assertNotIn(canary, path.read_text())
+            self.assertNotIn(canary, stdout.getvalue() + stderr.getvalue())
 
     def test_symlink_target_refused(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -40,7 +40,17 @@ QR/publication refresh, 2026-10-12: local OpenClaw `2026.10.2` version and `chan
 - [Plugin lifecycle and hooks](https://docs.openclaw.ai/tools/plugin), [exec approvals](https://docs.openclaw.ai/tools/exec-approvals), [update CLI](https://docs.openclaw.ai/cli/update), and [Doctor CLI](https://docs.openclaw.ai/cli/doctor): operator diagnostics and the distinction between tool policies, host hooks, and approval behavior.
 - [OSV](https://osv.dev/) and [GitHub Advisory Database](https://github.com/advisories): lookup sources for exact installed dependencies; neither an exhaustive MiniSamantha bill of materials nor a clean deployment scan is claimed here.
 
-The [maintenance checklist](security-maintenance.md) derives conservative operator requirements from these sources. The two-decision admission workflow is this project's procedural recommendation, not an upstream guarantee of prompt count. Deployment changes are guidance only: no additional runtime, plugin, tool, private configuration, or deployment-specific patch is included. A publication-check compatibility fix is recorded separately in [validation evidence](../../../VALIDATION.md). Live schema/channel/model/sandbox/restore validation on 2026.10.6 remains the operator's responsibility.
+The [maintenance checklist](security-maintenance.md) derives conservative operator requirements from these sources. The two-decision admission workflow is this project's procedural recommendation, not an upstream guarantee of prompt count. No additional runtime, plugin, agent tool, private configuration, or deployment-specific patch is included. Publication checks and disposable CLI validation are recorded separately in [validation evidence](../../../VALIDATION.md). Actual deployment/channel/model/sandbox/restore validation remains the operator's responsibility.
+
+## Local compatibility and credentials — 2026-10-22
+
+Checked against the documentation shipped with npm release `2026.10.6`, with corresponding release-pinned upstream sources:
+
+- [SecretRef contract](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/gateway/secrets/secretref-contract.md) and [supported credential fields](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/reference/secretref-credential-surface.md): file provider, `singleValue` mode, private-file checks, and `gateway.auth.token` support.
+- [Secrets CLI](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/cli/secrets.md), [Doctor lint](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/cli/doctor/lint.md), and [security CLI](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/cli/security.md): read-only checks, structured result interpretation, and cold versus deep audit.
+- [Environment paths](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/help/environment.md) and [heartbeat configuration](https://github.com/openclaw/openclaw/blob/v2026.10.6/docs/gateway/config-agents/heartbeat-compaction-and-streaming.md): disposable profile overrides and the still-supported disabled cadence.
+
+The real released CLI accepted the changed scaffold and resolved its token; negative file-resolution checks were also run. Browser import is explicitly disabled. These are new-profile checks, not an existing-installation migration or proof of live group isolation. The [local checker](local-check.md) uses no model credentials and records untested boundaries explicitly.
 
 ## What this kit does not claim
 

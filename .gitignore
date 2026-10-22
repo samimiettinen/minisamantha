@@ -14,5 +14,6 @@ backups/
 *.tar.gz
 *.zip
 auth-profiles.json
+gateway-token
 openclaw.json
 groups.local.json

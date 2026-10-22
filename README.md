@@ -12,7 +12,8 @@ This is an **operator-invoked installation skill and starter kit**, not a securi
 | --- | --- |
 | OpenClaw 2026.9.8 | Scaffold schema and disabled-profile audit checked on 2026-10-10; historical reference, not a current security recommendation |
 | OpenClaw 2026.10.2 | Local CLI version and channel-login help inspected on 2026-10-12; no full deployment compatibility test |
-| OpenClaw 2026.10.6 / patched Node 24 or 26 | Published release and npm engine requirement checked on 2026-10-22; security installation baseline, not a new live compatibility certification |
+| OpenClaw 2026.10.6 / Node 24.22.1 | Disposable owner/T2/T3 scaffold accepted by the real CLI on 2026-10-22; file SecretRef resolved; Doctor/audit warnings reviewed. No running gateway tested |
+| Node 26.12.1+ on the 26 line | Meets the reviewed release's engine requirement; not exercised in this kit's CLI compatibility run |
 | `openai/gpt-5.6-sol` | Intentional fixed model; verify access in the actual account/runtime; no fallback if unavailable |
 | Live WhatsApp, model, sandbox, restore | Operator acceptance tests required; not established by this repository's CI |
 
@@ -26,6 +27,7 @@ Version and model information ages quickly. Check the target release and advisor
 - [Memory without MemoriLabs](skills/install-minisamantha/references/memory.md): transcripts, source-backed wiki, a small file graph, and portable records.
 - [Recommended extensions](skills/install-minisamantha/references/recommended-extensions.md): transcript-first YouTube reading and Lossless Claw context management, with scoped rollout and tests.
 - [Security maintenance](skills/install-minisamantha/references/security-maintenance.md): patched runtimes, dependency exposure, bounded approvals, and update/restore checks.
+- [Optional local compatibility check](skills/install-minisamantha/references/local-check.md): exercise your installed CLI on a disposable starter and read `PASS`, `WARN`, `FAIL`, and `NOT RUN` results.
 - [Deployment review](skills/install-minisamantha/references/deployment-review.md): context and recovery requirements, organisational-use checks, and Finnish language quality.
 - [Acceptance tests](skills/install-minisamantha/references/acceptance.md): positive and negative tests required before enabling groups.
 - [First jobs](skills/install-minisamantha/references/first-jobs.md): four starter playbooks, from guest question sets to research notes, so the deployment does real work within the same limits.
@@ -93,7 +95,9 @@ python3 -m unittest discover -s tests -v
 
 Tests use synthetic identities and temporary directories. They do not call a model, start a gateway, link WhatsApp, install packages, or change your running agent.
 
-Historical scaffold schema reference: OpenClaw **2026.9.8**, **not a version to install from this guide**. Use the patched installation baseline above, validate the generated configuration against that release, and complete the live acceptance tests before activation. See [sources and limitations](skills/install-minisamantha/references/sources.md).
+With a reviewed Node/OpenClaw pair already installed, optionally run `python3 skills/install-minisamantha/scripts/check_install.py` to validate a disposable scaffold using the real CLI. New profiles keep the gateway token in a protected file referenced by config and explicitly disable personal browser-profile import. See [the local check and its warning explanations](skills/install-minisamantha/references/local-check.md).
+
+The current disposable schema/credential check used OpenClaw **2026.10.6** and Node **24.22.1**. Historical 2026.9.8 results are retained as history, **not an installation recommendation**. Validate the actual deployment and complete live acceptance before activation. See [sources and limitations](skills/install-minisamantha/references/sources.md).
 
 Quality refresh, 2026-10-12: the group template now prioritises the current request over history, distinguishes old media from current attachments, and instructs recovery to use the retained original request. The runtime must actually retain that request. New acceptance scenarios cover these failures and strict mentions. Samantha's version-specific runtime hotfixes and broader production permissions are **not** included; prompt improvements alone do not establish those runtime guarantees.
 
