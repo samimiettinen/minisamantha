@@ -33,7 +33,7 @@ def validate_groups(groups):
     return groups
 
 
-def build_config(root, owner, groups, token, port=19789):
+def build_config(root, owner, groups, port=19789):
     root = Path(root)
     if not root.is_absolute():
         raise ValueError("Profile path must be absolute")
@@ -42,8 +42,6 @@ def build_config(root, owner, groups, token, port=19789):
     if not 1024 <= port <= 65535:
         raise ValueError("Use an unprivileged TCP port")
     validate_groups(groups)
-    if not isinstance(token, str) or len(token) < 32:
-        raise ValueError("Gateway token must have at least 32 characters")
     sandbox = {
         "mode": "all", "backend": "docker", "scope": "session",
         "workspaceAccess": "none",
@@ -85,7 +83,11 @@ def build_config(root, owner, groups, token, port=19789):
             "peer": {"kind": "group", "id": group["jid"]}}})
     return {
         "gateway": {"mode": "local", "bind": "loopback", "port": port,
-                    "auth": {"mode": "token", "token": token}},
+                    "auth": {"mode": "token", "token": {
+                        "source": "file", "provider": "local_gateway", "id": "value"}}},
+        "secrets": {"providers": {"local_gateway": {
+            "source": "file", "path": str(root / "secrets" / "gateway-token"),
+            "mode": "singleValue"}}},
         "agents": {"ownership": "explicit", "defaults": {
             "model": {"primary": MODEL, "fallbacks": []},
             "utilityModel": MODEL, "skills": [], "maxConcurrent": 1,
@@ -106,7 +108,7 @@ def build_config(root, owner, groups, token, port=19789):
             "codeMode": {"enabled": False},
             "sandbox": {"tools": {"allow": ["read"], "deny": ["exec", "process", "write", "edit", "apply_patch"]}},
         },
-        "browser": {"enabled": False},
+        "browser": {"enabled": False, "allowSystemProfileImport": False},
         "commands": {"config": False, "debug": False, "bash": False, "restart": False,
                      "ownerAllowFrom": [owner]},
         "channels": {"whatsapp": {
@@ -131,7 +133,7 @@ def scaffold(output, owner, groups, port=19789):
         raise ValueError("Choose a new absolute profile directory; existing paths are refused")
     if not output.parent.is_dir() or output.parent.resolve() != output.parent:
         raise ValueError("Parent must exist and must not traverse symlinks")
-    config = build_config(output, owner, groups, secrets.token_urlsafe(48), port)
+    config = build_config(output, owner, groups, port)
     soul = (ASSETS / "SOUL.md").read_text(encoding="utf-8")
     owner_rules = (ASSETS / "OWNER-AGENTS.md").read_text(encoding="utf-8")
     group_rules = (ASSETS / "GROUP-AGENTS.md").read_text(encoding="utf-8")
@@ -140,6 +142,7 @@ def scaffold(output, owner, groups, port=19789):
     old_umask = os.umask(0o077)
     try:
         output.mkdir(mode=0o700, exist_ok=False)
+        private_write(output / "secrets" / "gateway-token", secrets.token_urlsafe(48) + "\n")
         private_write(output / "openclaw.json", json.dumps(config, indent=2) + "\n")
         private_write(output / "groups.local.json", json.dumps(groups, indent=2) + "\n")
         for agent_id in config["agents"]["entries"]:
@@ -175,7 +178,8 @@ def main():
     except (ValueError, OSError) as error:
         parser.exit(2, f"Refused: {error}\n")
     print(f"Created protected profile at {path}. Channels DISABLED. Nothing installed or started.")
-    print("A random gateway token is in the protected config; do not print or commit that file.")
+    print("The gateway token is in a separate protected secrets file; config contains a file reference.")
+    print("Keep the entire profile private, including backups. No credential value was printed.")
 
 
 if __name__ == "__main__":

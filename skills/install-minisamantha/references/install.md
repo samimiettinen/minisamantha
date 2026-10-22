@@ -20,7 +20,7 @@ Before organisational/customer-data use, follow the [deployment review](deployme
 
 ## 2. Pin and inspect OpenClaw
 
-Security installation baseline checked on 2026-10-22: `2026.10.6`, the published stable release requiring patched Node 24.22.1+ or 26.12.1+. The scaffold's `2026.9.8` schema evidence is historical; do not install that old reference version. Recheck the latest stable release, advisories, official-plugin packaging, and Node requirements before approving an exact version. Validate the generated config and complete acceptance tests on the selected release before activation; this documentation refresh is not a new deployment compatibility test.
+Security installation baseline checked on 2026-10-22: `2026.10.6`, the published stable release requiring patched Node 24.22.1+ or 26.12.1+. A disposable scaffold was validated with the actual 2026.10.6 CLI on Node 24.22.1; this does not test a running deployment. Recheck the latest stable release, advisories, official-plugin packaging, and Node requirements before approving an exact version. Validate the generated config and complete acceptance tests on the selected release before activation.
 
 **Before any package install or authentication**, inspect the executable and install destination under the intended standard user:
 
@@ -41,6 +41,8 @@ openclaw --help
 
 Do not use `sudo npm`, `@latest`, auto-update from a group, or third-party installers copied from chat. If global installation would require broad privilege changes, choose an operator-managed user-local Node/npm installation instead.
 
+Optionally run `python3 scripts/check_install.py` from the skill directory. It checks the selected installed CLI against disposable synthetic state, never your live profile. Read [the result and expected warnings](local-check.md); it does not install software, connect channels, or prove service/runtime isolation.
+
 Provision the sandbox image using the target release's [official image instructions](https://docs.openclaw.ai/gateway/sandboxing/images-and-setup). The npm package does not contain the source-checkout `scripts/sandbox-setup.sh`; do not run a guessed path. Review and build the documented Dockerfile, record its base digest and resulting image ID, and use `openclaw-sandbox:bookworm-slim` for this scaffold. Pin the actual deployment image by a verified immutable reference where supported. Rebuild deliberately for security updates. No Docker socket or host home-directory bind belongs inside a tool container.
 
 ## 3. Generate a protected, disabled profile
@@ -53,7 +55,7 @@ python3 scripts/scaffold.py --output "$HOME/.openclaw-minisamantha" --owner '+YO
 
 Replace the placeholder; the tool rejects invalid phone numbers. It refuses existing paths. Do not delete an existing profile to get past that protection. For group setup, prepare a local JSON registry using `assets/groups.example.json` as syntax only and add `--groups /absolute/private/path/groups.local.json`. Never use its synthetic IDs for a real deployment. Obtain the real group JID from trusted operator observation, not a screenshot's display name.
 
-The tool creates a random token and mode-600 config inside a mode-700 directory. Keep that directory on the encrypted local disk, outside this repository and cloud sync. Do not print or paste the config; it now contains a secret. Preserve its permissions in backups. If moved, regenerate or explicitly repair absolute workspace paths before use.
+The tool creates a mode-600 config and a separate random token at `secrets/gateway-token`, inside protected mode-700 directories. Config contains a file SecretRef, not the token value. The secret file remains plaintext at rest; file permissions are not a vault. Keep the entire profile on encrypted local disk, outside this repository and cloud sync. Config still contains private identities and paths: do not publish it. Back up both files with encryption and preserved permissions; if moved, explicitly repair absolute secret and workspace paths before use. See [credential storage](local-check.md#gateway-credential-storage).
 
 It creates separate workspaces/agent directories, disables channels and heartbeats, and denies group tools. T4/T5 registry entries receive **no route and no channel admission**. Even with no groups, an unbound second agent prevents a sole-agent fallback into the private owner agent. That placeholder must never receive a binding.
 
@@ -61,9 +63,10 @@ If you intend to test a group on the first day, include just that verified room 
 
 ```sh
 openclaw --profile minisamantha config validate --json
+openclaw --profile minisamantha secrets audit --check
 ```
 
-Do not proceed if validation fails. A different destination requires explicitly setting both `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` for **every** command and service; the examples assume the named profile's standard location.
+Review results privately; do not proceed if validation or secret resolution fails. A different destination requires explicitly setting both `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` for **every** command and service; the examples assume the named profile's standard location.
 
 ## 4. Authenticate GPT‑5.6 Sol
 
