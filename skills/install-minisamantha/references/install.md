@@ -14,13 +14,13 @@ Before organisational/customer-data use, follow the [deployment review](deployme
 2. Do not sign the agent into the owner's Apple ID, iCloud, browser, email, password manager, or personal cloud drive. Grant no blanket Full Disk Access, Accessibility, screen recording, or passwordless sudo.
 3. Plan restart recovery: FileVault can need a person at the keyboard after cold boot; do not disable encryption or enable automatic login to hide that limitation. Test both the supported planned-restart path and a cold boot. An UPS reduces outages but does not solve unlocking.
 4. Record RAM and free disk. The baseline is a 16 GB Apple Silicon Mac mini, one active model turn at a time. Start Docker's VM budget around 3–4 GB and measure. This kit installs no 26B/27B local model, image/video pipeline, or always-running embeddings service.
-5. Install a supported Node.js version, Git, Python 3, and a Docker-compatible runtime from their official distributions. Use the target OpenClaw release's Node requirement, not “whatever is newest.” Review package sources; an administrator should provision shared software if needed. Verify `node --version`, `python3 --version`, and `docker info` under the actual agent account.
+5. Install a supported, security-patched Node.js version, Git, Python 3, and a Docker-compatible runtime from their official distributions. For the 2026-10-22 baseline, prefer patched Node 24 LTS, at least 24.22.1; Node 26 must be at least 26.12.1. Check the target OpenClaw release's requirement and the version actually available from the chosen package source. An administrator should provision shared software if needed. Verify `node --version`, `python3 --version`, and `docker info` under the actual agent account, then verify the running service's executable separately. See [security maintenance](security-maintenance.md).
 6. Optional remote administration: use the official [Tailscale macOS installation guide](https://tailscale.com/docs/install/mac), restrict the tailnet to operator devices, and use SSH keys with the intended administrator account. Keep gateway ports off the public internet. Test a second remote connection before disabling password login. Do not enable Tailscale Funnel or router port forwarding.
 7. Plan the three-level kill switch in [section 7](#kill-switch-three-levels) before the first channel is linked: stop this gateway, cut its network, cut its power. Record how to stop only this gateway. The agent must not control its own sole emergency stop.
 
 ## 2. Pin and inspect OpenClaw
 
-Reference version for this kit: `2026.9.8`. Review current advisories/release notes before selecting it; a pin is reproducibility, not proof of safety. If a newer security release is required, adapt the config and run the full tests before activation.
+Security installation baseline checked on 2026-10-22: `2026.10.6`, the published stable release requiring patched Node 24.22.1+ or 26.12.1+. The scaffold's `2026.9.8` schema evidence is historical; do not install that old reference version. Recheck the latest stable release, advisories, official-plugin packaging, and Node requirements before approving an exact version. Validate the generated config and complete acceptance tests on the selected release before activation; this documentation refresh is not a new deployment compatibility test.
 
 **Before any package install or authentication**, inspect the executable and install destination under the intended standard user:
 
@@ -34,7 +34,7 @@ An absent executable is normal on a fresh account. A separate account/profile do
 For a fresh install, after approving that version and proving the global prefix belongs exclusively to this new installation:
 
 ```sh
-npm install --global openclaw@2026.9.8
+npm install --global openclaw@2026.10.6
 openclaw --version
 openclaw --help
 ```
@@ -161,7 +161,7 @@ Initially only the owner is in `groupAllowFrom`. The group map controls **which 
 
 `requireMention` also accepts some reply-to-bot activation in OpenClaw. The prompt's stricter explicit-human-tag rule is behavioral. **For this kit, production groups remain disabled until the strict-tag ingress acceptance tests pass**, including no model invocation on quote-only/reply-only activation. This may require a separately reviewed ingress filter or a verified target-release fix; neither is shipped here. Owner-only DMs may be handed over separately after their own tests pass; private test groups are only for bounded acceptance work. Do not reinterpret a polite model refusal as successful ingress filtering. Prevent bot loops with sender allowlists, not claims that WhatsApp can always detect bots.
 
-Samantha's October 11 deployment added local adapter/runtime corrections for this behavior and for current-message/recovery context. Those patches are not part of a stock 2026.9.8 install or this kit. Check the actual target build and rerun the current-message, quote-only, native-mention, and recovery tests; copying policy prose alone does not install those fixes. See [deployment review](deployment-review.md).
+Check the actual target build and rerun the current-message, quote-only, native-mention, and recovery tests. A patch or successful test from another deployment does not establish these guarantees here; copying policy prose does not install runtime corrections. See [deployment review](deployment-review.md).
 
 Only after all live tests pass, install the named profile's service using `gateway install --help` and the supported command. Verify its launch environment, paths, identity, token handling, and port. Do not replace another profile's service. Test logout/reboot/remote recovery before unattended operation.
 
@@ -184,9 +184,9 @@ Create a consistent backup through [OpenClaw backup](https://docs.openclaw.ai/in
 openclaw --profile minisamantha backup create --output "$HOME/Backups/MiniSamantha" --verify
 ```
 
-The backup includes secrets and conversations; keep it encrypted, separate from the public repo, and access-restricted. A verified archive is not a restore test. Restore into an isolated test destination with channels disabled and no production port/account collision. Follow that release's restore help; confirm config, memory, and session readability before any activation. Never use a live raw directory tar as a database-consistency guarantee.
+The backup includes secrets and conversations; keep it encrypted, separate from the public repo, and access-restricted. A compressed archive is not automatically encrypted. A verified archive is not a restore test. Restore into an isolated test destination with channels disabled and no production port/account collision. Follow that release's restore help; confirm config, memory, and session readability before any activation. Never use a live raw directory tar as a database-consistency guarantee.
 
-Before an approved upgrade: backup, capture version/image IDs, review notes, run `update status`, and use an exact approved tag. The updater may restart the gateway. Re-run routing, model, sandbox, and channel tests. Retain a compatible previous application/config/state backup; downgrading a binary alone may not undo data migrations.
+Before an approved upgrade, follow the [security maintenance checklist](security-maintenance.md): inspect first, verify backup coverage, capture version/image IDs, and approve an exact target and recovery plan. The updater may restart the gateway. Re-run routing, model, sandbox, and real channel tests. Retain a compatible previous application/plugin/config/state backup; downgrading a binary alone may not undo data migrations. Rebuild or pull corrected container images and recreate affected containers; a restart alone does not replace their runtime.
 
 For “session ended during restart recovery”: preserve the transcript, verify the model/auth and gateway, and use `/new` or `/reset` in the **affected conversation** to start a replacement session. In WebChat, use its resume/new-session control. Warn that active working context changes; do not delete session files, reset other conversations, or keep restarting the gateway. A new session must still pass the smoke test.
 

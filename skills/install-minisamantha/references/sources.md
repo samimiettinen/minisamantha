@@ -1,6 +1,6 @@
 # Sources, compatibility, and deliberate deviations
 
-Prepared 2026-10-10; quality, companion-workflow, and first-jobs review updated 2026-10-12. Product details change: recheck the installed version and authoritative documentation before executing an installation. This kit contains newly written templates and policies, not private source files or a redistribution of the presentation.
+Prepared 2026-10-10; quality, companion-workflow, and first-jobs review updated 2026-10-12; public security sources refreshed 2026-10-22. Product details change: recheck the installed version and authoritative documentation before executing an installation. This kit contains newly written templates and policies, not private source files or a redistribution of the presentation.
 
 ## User-supplied design sources
 
@@ -32,6 +32,15 @@ Presentation claims are historical design context, not evidence that a new deplo
 OpenClaw details above were checked against the documentation bundled with installed release `2026.9.8`; the web references are the corresponding live pages. Claude Code skill discovery/manual invocation and the exact GPT‑5.6 Sol model page were also checked online. Online docs can move ahead of that local version.
 
 QR/publication refresh, 2026-10-12: local OpenClaw `2026.10.2` version and `channels login --help` inspected without starting login. The [current CLI guide](https://docs.openclaw.ai/cli/channels) and [WhatsApp guide](https://docs.openclaw.ai/channels/whatsapp) support the documented QR, profile/account, exec restriction and proxy caveats. This does not revalidate the scaffold against 2026.10.2 or exercise live login. Current documentation describes WhatsApp as a separately packaged plugin; when changing releases, verify that release's official plugin packaging/version rather than installing an unpinned dependency or assuming the historical layout still applies.
+
+## Security-source refresh — 2026-10-22
+
+- [Node.js October security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases): published fixes and release-line floors, including CVE-2026-111497. This is upstream vulnerability information, not evidence of exploitation in a MiniSamantha deployment.
+- [OpenClaw v2026.10.6 stable release](https://github.com/openclaw/openclaw/releases/tag/v2026.10.6) and [exact npm package metadata](https://registry.npmjs.org/openclaw/2026.10.6): patched Node engine requirement and released Docker-runtime update. The npm `latest` tag resolved to 2026.10.6 on the review date; no beta/main-only change is presented as a released fix.
+- [Plugin lifecycle and hooks](https://docs.openclaw.ai/tools/plugin), [exec approvals](https://docs.openclaw.ai/tools/exec-approvals), [update CLI](https://docs.openclaw.ai/cli/update), and [Doctor CLI](https://docs.openclaw.ai/cli/doctor): operator diagnostics and the distinction between tool policies, host hooks, and approval behavior.
+- [OSV](https://osv.dev/) and [GitHub Advisory Database](https://github.com/advisories): lookup sources for exact installed dependencies; neither an exhaustive MiniSamantha bill of materials nor a clean deployment scan is claimed here.
+
+The [maintenance checklist](security-maintenance.md) derives conservative operator requirements from these sources. The two-decision admission workflow is this project's procedural recommendation, not an upstream guarantee of prompt count. Deployment changes are guidance only: no additional runtime, plugin, tool, private configuration, or deployment-specific patch is included. A publication-check compatibility fix is recorded separately in [validation evidence](../../../VALIDATION.md). Live schema/channel/model/sandbox/restore validation on 2026.10.6 remains the operator's responsibility.
 
 ## What this kit does not claim
 

@@ -24,6 +24,8 @@ GITLEAKS_BIN=/absolute/path/to/gitleaks python3 -m unittest discover -s tests -v
 
 The wrapper uses default Gitleaks rules with inline/repository exemptions disabled. It scans historical patches including merges, current files, and raw commit metadata, and rejects non-GitHub-noreply author/committer emails. Set repository-local Git author/committer email to your own GitHub-provided noreply address before committing; do not invent someone else's identity. Commit messages and names still require human privacy review.
 
+The email check also accepts the exact public system identity `noreply@github.com`, used by GitHub for temporary PR merge commits. Other addresses at that domain remain rejected. This exception does not skip the commit's author, message, diff, or secret scan.
+
 Only tool version, HEAD, reachable-commit count and per-check finding counts are printed. Detailed redacted scanner results are temporary and deleted; no reports are uploaded as public artifacts. On failure, keep publication closed and reproduce locally with the pinned scanner in a private terminal; if retaining a detailed report, use an access-restricted location outside the repository. Do not paste it into an issue or broadly suppress findings. Scanner errors are failures, not clean results.
 
 The [security workflow](.github/workflows/security.yml) fetches complete branch/tag history, verifies a pinned scanner archive, tests that a fake secret removed from the current file is still caught in history, and repeats the publication scan. This is a CI check, not a configured branch-protection rule or a claim of complete anonymity. Keep human review of identities, filenames, links, screenshots and publication rights.

@@ -30,6 +30,8 @@ T1–T5 are also **not EU AI Act risk classifications**. For organisational or c
 
 Do not claim this is hostile multi-tenancy. OpenClaw's documented trust model is a personal assistant under a trusted operator. For mutually adversarial tenants that must interact, separate gateways and OS users or hosts, disjoint credentials/storage, and explicit network boundaries are required. The small starter blocks T4/T5 instead.
 
+These controls also depend on a patched host runtime and the code loaded into it. A denied plugin tool does not disable a plugin's host-side conversation hooks; session labels alone do not enforce storage or retrieval isolation. Before an upgrade or optional plugin change, use the [security maintenance checklist](security-maintenance.md) to review actual runtime/dependency exposure and test both memory ingestion and retrieval. A successful audit does not establish that untested paths are safe.
+
 ## Prompt-only measures and limits
 
 Tone, truthfulness, explicit-human-tag-only behavior, static-review-only behavior, and refusing disclosures are instructions, not absolute enforcement. WhatsApp reply-to-bot detection can satisfy its native mention gate. Sender authentication does not sanitize quoted or retrieved content. An authorized sender can be compromised. A local gateway does not keep data sent to a cloud model local.

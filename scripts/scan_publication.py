@@ -18,7 +18,9 @@ def git(repo, *args):
 
 def private_email_count(metadata):
     """Project publication policy: author/committer email must be GitHub noreply."""
-    return sum(not address.lower().endswith(b"@users.noreply.github.com")
+    # GitHub's temporary PR merge commits use its public system noreply address.
+    return sum(not (address.lower().endswith(b"@users.noreply.github.com")
+                    or address.lower() == b"noreply@github.com")
                for address in metadata.split(b"\0") if address.strip())
 
 
