@@ -35,11 +35,12 @@ Live deployment acceptance, independent external human review and independent ri
 
 ## Security guidance refresh — 2026-10-22
 
-Base revision: `5422569e9d9300c3f9cbc0b326a39a8fe2f157a1`, plus this documentation change. Reviewer role: implementing AI assistant; no independent human or live deployment audit. Public Node.js release information, OpenClaw's published 2026.10.6 release/npm engine metadata, and upstream operator documentation were checked. The installation example now selects 2026.10.6 with a supported patched Node line instead of the historical 2026.9.8 schema reference.
+Base revision: `5422569e9d9300c3f9cbc0b326a39a8fe2f157a1`, plus this guidance and publication-check change. Reviewer role: implementing AI assistant; no independent human or live deployment audit. Public Node.js release information, OpenClaw's published 2026.10.6 release/npm engine metadata, and upstream operator documentation were checked. The installation example now selects 2026.10.6 with a supported patched Node line instead of the historical 2026.9.8 schema reference.
 
 Added a maintenance checklist for actual service runtimes, installed dependency reachability, host-side memory hooks, bounded operator approvals, image replacement, backup/rollback and channel verification. Linked it from the installer and existing controls, and extended the operator acceptance checklist. The scaffold code, generated model/tool/sandbox/routing configuration, persona and playbooks are unchanged. No private deployment configuration, identifiers, logs, conversations or runtime patches were added.
 
-- All 25 offline tests passed with the pinned Gitleaks scanner available, including privacy checks and all seven scanner integration tests; no skipped tests.
+- All 27 offline tests passed with the pinned Gitleaks scanner available, including privacy checks and all eight scanner integration tests; no skipped tests.
+- The first PR check exposed an existing email-policy false positive for GitHub's temporary merge committer. The publication checker now accepts only the exact public system noreply address in addition to user noreply addresses. Regression tests reject lookalike addresses and a private author even when the committer is the allowed system identity; secret scanning still covers the entire commit.
 - Gitleaks 8.30.1 from the verified official macOS arm64 archive passed the full fetched base history, changed working tree, commit metadata and noreply email policy with zero findings. Final-commit scanning and the published CI run identify the exact revision being released. These checks do not establish anonymity or runtime security.
 - The documentation diff and relative links were reviewed, and whitespace checks passed. Published stable fixes, dated minimums, procedural recommendations and unverified deployment behavior are labeled separately.
 

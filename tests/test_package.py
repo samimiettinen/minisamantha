@@ -49,6 +49,8 @@ class PackageTests(unittest.TestCase):
                 with self.subTest(path=path.name, pattern=value):
                     self.assertNotIn(value, text)
             for address in re.findall(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", text):
+                if address.lower() == "noreply@github.com":
+                    continue  # Public GitHub system identity, not a domain-wide exception.
                 domain = address.rsplit("@", 1)[1].lower()
                 with self.subTest(path=path.name, check="email or room identifier"):
                     self.assertIn(domain, ("example.com", "example.org", "users.noreply.github.com", "g.us"))

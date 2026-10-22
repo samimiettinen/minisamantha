@@ -20,6 +20,13 @@ class PublicationTests(unittest.TestCase):
     def test_noreply_only_and_empty_fields(self):
         self.assertEqual(publication.private_email_count(b"\0test@users.noreply.github.com\0"), 0)
 
+    def test_system_noreply_exception_is_exact(self):
+        self.assertEqual(publication.private_email_count(b"noreply@github.com\0"), 0)
+        for address in (b"employee@" + b"github.com", b"not-noreply@" + b"github.com",
+                        b"noreply@" + b"github.com.example.org"):
+            with self.subTest(check="other address rejected"):
+                self.assertEqual(publication.private_email_count(address + b"\0"), 1)
+
 
 @unittest.skipUnless(os.environ.get("GITLEAKS_BIN"), "Set GITLEAKS_BIN for scanner integration tests")
 class ScannerIntegrationTests(unittest.TestCase):
@@ -89,6 +96,19 @@ class ScannerIntegrationTests(unittest.TestCase):
         self.run_git("config", "user.email", "operator@" + "example.net")
         self.commit("public documentation\n")
         self.assertFalse(self.scan()["checks"]["commit_email_policy"]["pass"])
+
+    def test_system_committer_does_not_exempt_private_author(self):
+        self.commit("public documentation\n")
+        self.run_git("-c", "user.email=noreply@github.com", "commit", "--allow-empty",
+                     "--author", "Synthetic test <test@users.noreply.github.com>",
+                     "-m", "Synthetic GitHub merge identity")
+        self.assertTrue(self.scan()["pass"])
+        self.run_git("-c", "user.email=noreply@github.com", "commit", "--allow-empty",
+                     "--author", "Synthetic test <operator@" + "example.net>",
+                     "-m", "Synthetic private author")
+        result = self.scan()
+        self.assertFalse(result["checks"]["commit_email_policy"]["pass"])
+        self.assertNotIn("operator@" + "example.net", str(result))
 
     def test_shallow_checkout_refused(self):
         self.commit("public documentation\n")
